@@ -1,0 +1,59 @@
+@startuml ProjectManagementSystem_ERD_Simple
+
+' Entity definitions
+entity "LOCATION" as location {
+  * id : UUID <<PK>>
+  --
+  code : String
+  name : String
+  type : Enum
+  parent_id : UUID <<FK>>
+}
+
+entity "USER" as user {
+  * id : UUID <<PK>>
+  --
+  email : String <<UNIQUE>>
+  password : String
+  role : String
+  location_id : UUID <<FK>>
+}
+
+entity "USER_PROFILE" as user_profile {
+  * id : UUID <<PK>>
+  --
+  firstName : String
+  lastName : String
+  phoneNumber : String
+  user_id : UUID <<FK, UNIQUE>>
+}
+
+entity "PROJECT" as project {
+  * id : UUID <<PK>>
+  --
+  title : String <<UNIQUE>>
+  description : String
+  year : Integer
+  user_id : UUID <<FK>>
+}
+
+entity "TAG" as tag {
+  * id : UUID <<PK>>
+  --
+  name : String <<UNIQUE>>
+}
+
+entity "PROJECT_TAGS" as project_tags {
+  * project_id : UUID <<PK, FK>>
+  * tag_id : UUID <<PK, FK>>
+}
+
+' Relationships
+location ||--o{ location : "parent_id"
+location ||--o{ user : "location_id"
+user ||--|| user_profile : "user_id"
+user ||--o{ project : "user_id"
+project ||--o{ project_tags : "project_id"
+tag ||--o{ project_tags : "tag_id"
+
+@enduml

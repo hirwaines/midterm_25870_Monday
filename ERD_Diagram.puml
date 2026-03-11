@@ -1,0 +1,102 @@
+@startuml ProjectManagementSystem_ERD
+
+!define primary_key(x) <b><color:#b8861b><&key></color> x</b>
+!define foreign_key(x) <color:#aaaaaa><&key></color> x
+!define unique(x) <color:#green><&check></color> x
+
+skinparam linetype ortho
+skinparam roundcorner 10
+skinparam class {
+    BackgroundColor LightYellow
+    BorderColor Black
+    ArrowColor Black
+}
+
+entity "LOCATION" as location {
+  primary_key(id) : UUID
+  --
+  code : String
+  name : String
+  type : Enum <<PROVINCE, DISTRICT, SECTOR, CELL, VILLAGE>>
+  foreign_key(parent_id) : UUID
+}
+
+entity "USER" as user {
+  primary_key(id) : UUID
+  --
+  unique(email) : String
+  password : String
+  role : String
+  foreign_key(location_id) : UUID
+}
+
+entity "USER_PROFILE" as user_profile {
+  primary_key(id) : UUID
+  --
+  firstName : String
+  lastName : String
+  phoneNumber : String
+  foreign_key(user_id) : UUID <<UNIQUE>>
+}
+
+entity "PROJECT" as project {
+  primary_key(id) : UUID
+  --
+  unique(title) : String
+  description : String
+  year : Integer
+  foreign_key(user_id) : UUID
+}
+
+entity "TAG" as tag {
+  primary_key(id) : UUID
+  --
+  unique(name) : String
+}
+
+entity "PROJECT_TAGS" as project_tags {
+  primary_key(project_id) : UUID
+  primary_key(tag_id) : UUID
+}
+
+' Self-referencing relationship for Location
+location ||--o{ location : "parent-child\n(Hierarchical)"
+
+' Location to User (One-to-Many)
+location ||--o{ user : "resides in\n(1:N)"
+
+' User to UserProfile (One-to-One)
+user ||--|| user_profile : "has profile\n(1:1)\n<<CASCADE>>"
+
+' User to Project (One-to-Many)
+user ||--o{ project : "owns\n(1:N)"
+
+' Project to ProjectTags (One-to-Many)
+project ||--o{ project_tags : "has tags"
+
+' Tag to ProjectTags (One-to-Many)
+tag ||--o{ project_tags : "used in"
+
+note right of location
+  **Hierarchical Structure**
+  - Self-referencing for location hierarchy
+  - Example: Province → District → 
+    Sector → Cell → Village
+  - parent_id references id in same table
+end note
+
+note right of user
+  **User Authentication**
+  - Stores login credentials
+  - Links to geographical location
+  - One user = One profile
+end note
+
+note right of project_tags
+  **Join Table**
+  - Implements Many-to-Many
+  - Composite Primary Key
+  - Links Projects and Tags
+end note
+
+@enduml
